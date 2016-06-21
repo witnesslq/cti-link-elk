@@ -18,14 +18,40 @@ tar -xvzf elasticsearch-2.3.0.tar.gz -C /usr/local/elk/
 chown elasticsearch:elasticsearch /usr/local/elk/elasticsearch-2.3.0/ -Rf
 
 配置文件
+yes|cp -f /home/cti-link/cti-link-elk/cti-link-elk/conf/elasticsearch.yml /usr/local/elk/elasticsearch-2.3.0/config/elasticsearch.yml
+
 vim /usr/local/elk/elasticsearch-2.3.0/config/elasticsearch.yml
 指定端口: http.port: 9200
 默认是9200
 
-安装插件
-cd /usr/local/elk/elasticsearch-2.3.0/bin
-./plugin install lukas-vlcek/bigdesk
 
+
+        安装插件(可选项) ============================================================
+        cd /usr/local/elk/elasticsearch-2.3.0/
+        mkdir -p /usr/local/elk/elasticsearch-2.3.0/plugins/bigdesk/_site
+        unzip /home/cti-link/cti-link-elk/cti-link-elk/binary/bigdesk-2.5.0.zip -d /tmp/
+        mv /tmp/bigdesk-2.5.0/* /usr/local/elk/elasticsearch-2.3.0/plugins/bigdesk/_site/
+
+        mkdir -p /usr/local/elk/elasticsearch-2.3.0/plugins/elasticsearch-head/_site
+        unzip /home/cti-link/cti-link-elk/cti-link-elk/binary/elasticsearch-head-master.zip -d /tmp/    
+        mv /tmp/elasticsearch-head/* /usr/local/elk/elasticsearch-2.3.0/plugins/elasticsearch-head/_site/
+        安装插件(可选项) ============================================================
+
+elasticcache可用性测试
+curl 'http://127.0.0.1:9200'
+正常返回
+{
+  "name" : "Deadly Ernest",
+  "cluster_name" : "elasticsearch",
+  "version" : {
+    "number" : "2.3.0",
+    "build_hash" : "8371be8d5fe5df7fb9c0516c474d77b9feddd888",
+    "build_timestamp" : "2016-03-29T07:54:48Z",
+    "build_snapshot" : false,
+    "lucene_version" : "5.5.0"
+  },
+  "tagline" : "You Know, for Search"
+}
 
 安装kibana
 tar -xvzf kibana-4.5.0-linux-x64.tar.gz -C /usr/local/elk/
@@ -48,16 +74,21 @@ vim /etc/rc.local
 . /etc/profile
 su - elasticsearch -c "/usr/local/elk/elasticsearch-2.3.0/bin/elasticsearch -d"
 #####kibana#####
-/usr/local/elk/kibana-4.5.0-linux-x64/bin/kibana -l /usr/local/elk/kibana-4.5.0-linux-x64/logs/kibana.log &
+nohup /usr/local/elk/kibana-4.5.0-linux-x64/bin/kibana -l /usr/local/elk/kibana-4.5.0-linux-x64/logs/kibana.log &
 
 #####logstash#####
-/usr/local/elk/logstash-2.3.0/bin/logstash -f /usr/local/elk/logstash-2.3.0/conf/logstash_index.conf &
+nohup /usr/local/elk/logstash-2.3.0/bin/logstash -f /usr/local/elk/logstash-2.3.0/conf/logstash_index.conf &
 
 启动：
 su - elasticsearch -c "/usr/local/elk/elasticsearch-2.3.0/bin/elasticsearch -d"
-/usr/local/elk/kibana-4.5.0-linux-x64/bin/kibana -l /usr/local/elk/kibana-4.5.0-linux-x64/logs/kibana.log &
-/usr/local/elk/logstash-2.3.0/bin/logstash -f /usr/local/elk/logstash-2.3.0/conf/logstash_index.conf &
+nohup /usr/local/elk/kibana-4.5.0-linux-x64/bin/kibana -l /usr/local/elk/kibana-4.5.0-linux-x64/logs/kibana.log &
+nohup /usr/local/elk/logstash-2.3.0/bin/logstash -f /usr/local/elk/logstash-2.3.0/conf/logstash_index.conf &
 
+登录地址访问
+http://54.222.176.219:5601/app/kibana
+
+防火墙开放：
+对内网ip开放tcp 4560(logstash),tcp 5601(kibana), tcp 9200(elastic search)
 ========================================================================================================
 客户端配置：
 yum -y install git
@@ -75,4 +106,4 @@ cp /home/cti-link/cti-link-elk/cti-link-elk/conf/logstash_agent.conf /usr/local/
 
 vim /etc/rc.local
 #####logstash#####
-/usr/local/elk/logstash-2.3.0/bin/logstash -f /usr/local/elk/logstash-2.3.0/conf/logstash_agent.conf &
+nohup /usr/local/elk/logstash-2.3.0/bin/logstash -f /usr/local/elk/logstash-2.3.0/conf/logstash_agent.conf &
