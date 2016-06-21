@@ -1,0 +1,32 @@
+一、  简介
+Logstash+ElasticSearch+Kibana4+redis
+Logstash：负责收集日志
+ElasticSearch：负责检索分析日志
+Kibana：负责展示ElasticSearch
+Redis：做为队列传输
+二、  安装
+mkdir -p /home/cti-link/cti-link-elk
+cd /home/cti-link/cti-link-elk
+git clone https://github.com/ti-net/cti-link-elk.git
+
+安装elasticsearch
+mkdir /usr/local/elk
+useradd elasticsearch     ##禁止root启动需要创建普通用户启动
+tar -xvzf elasticsearch-2.3.0.tar.gz -C /usr/local/elk/
+chown elasticsearch:elasticsearch /usr/local/elk/elasticsearch-2.3.0/ -Rf
+
+安装kibana
+tar -xvzf kibana-4.5.0-linux-x64.tar.gz -C /usr/local/elk/
+
+设置开机启动
+vim /etc/rc.local
+##### elasticsearch #####
+. /etc/profile
+su - elasticsearch -c "/usr/local/elk/elasticsearch-2.3.0/bin/elasticsearch -d"
+#####kibana#####
+/usr/local/elk/kibana-4.5.0-linux-x64/bin/kibana -l 
+/usr/local/elk/kibana-4.5.0-linux-x64/logs/kibana.log &
+
+#####logstash#####
+/usr/local/elk/logstash-2.3.0/bin/logstash -f 
+/usr/local/elk/logstash-2.3.0/conf/logstash_indexer.conf &
