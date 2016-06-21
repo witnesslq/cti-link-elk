@@ -11,7 +11,7 @@ cd /home/cti-link/cti-link-elk
 git clone https://github.com/ti-net/cti-link-elk.git
 
 安装elasticsearch
-mkdir /usr/local/elk
+mkdir -p /usr/local/elk
 useradd elasticsearch     ##禁止root启动需要创建普通用户启动
 cd /home/cti-link/cti-link-elk/cti-link-elk/binary/
 tar -xvzf elasticsearch-2.3.0.tar.gz -C /usr/local/elk/
@@ -22,6 +22,10 @@ vim /usr/local/elk/elasticsearch-2.3.0/config/elasticsearch.yml
 指定端口: http.port: 9200
 默认是9200
 
+安装插件
+cd /usr/local/elk/elasticsearch-2.3.0/bin
+./plugin install lukas-vlcek/bigdesk
+
 
 安装kibana
 tar -xvzf kibana-4.5.0-linux-x64.tar.gz -C /usr/local/elk/
@@ -31,23 +35,10 @@ mkdir -p /usr/local/elk/kibana-4.5.0-linux-x64/logs/
 tar -zxf logstash-2.3.0.tar.gz -C /usr/local/elk/
 
 mkdir /usr/local/elk/logstash-2.3.0/conf
-touch /usr/local/elk/logstash-2.3.0/conf/tcp2redis.conf
+cp /home/cti-link/cti-link-elk/cti-link-elk/conf/logstash_index.conf /usr/local/elk/logstash-2.3.0/conf/logstash_index.conf
 
 需要修改redis地址配置
 
-echo -e "input {">>/usr/local/elk/logstash-2.3.0/conf/tcp2redis.conf
-echo -e "   tcp {">>/usr/local/elk/logstash-2.3.0/conf/tcp2redis.conf
-echo -e "        port => 4560">>/usr/local/elk/logstash-2.3.0/conf/tcp2redis.conf
-echo -e "        codec => json_lines">>/usr/local/elk/logstash-2.3.0/conf/tcp2redis.conf
-echo -e "    }">>/usr/local/elk/logstash-2.3.0/conf/tcp2redis.conf
-echo -e "}">>/usr/local/elk/logstash-2.3.0/conf/tcp2redis.conf
-echo -e "output {">>/usr/local/elk/logstash-2.3.0/conf/tcp2redis.conf
-echo -e "    redis {">>/usr/local/elk/logstash-2.3.0/conf/tcp2redis.conf
-echo -e "        host => \"cti-link-cache-db.jkffod.0001.cnn1.cache.amazonaws.com.cn\"">>/usr/local/elk/logstash-2.3.0/conf/tcp2redis.conf
-echo -e "        key => logstash">>/usr/local/elk/logstash-2.3.0/conf/tcp2redis.conf
-echo -e "        data_type => list">>/usr/local/elk/logstash-2.3.0/conf/tcp2redis.conf
-echo -e "    }">>/usr/local/elk/logstash-2.3.0/conf/tcp2redis.conf
-echo -e "}">>/usr/local/elk/logstash-2.3.0/conf/tcp2redis.conf
 
 默认监听地址4560端口
 
@@ -60,5 +51,28 @@ su - elasticsearch -c "/usr/local/elk/elasticsearch-2.3.0/bin/elasticsearch -d"
 /usr/local/elk/kibana-4.5.0-linux-x64/bin/kibana -l /usr/local/elk/kibana-4.5.0-linux-x64/logs/kibana.log &
 
 #####logstash#####
-/usr/local/elk/logstash-2.3.0/bin/logstash -f /usr/local/elk/logstash-2.3.0/conf/tcp2redis.conf &
+/usr/local/elk/logstash-2.3.0/bin/logstash -f /usr/local/elk/logstash-2.3.0/conf/logstash_index.conf &
 
+启动：
+su - elasticsearch -c "/usr/local/elk/elasticsearch-2.3.0/bin/elasticsearch -d"
+/usr/local/elk/kibana-4.5.0-linux-x64/bin/kibana -l /usr/local/elk/kibana-4.5.0-linux-x64/logs/kibana.log &
+/usr/local/elk/logstash-2.3.0/bin/logstash -f /usr/local/elk/logstash-2.3.0/conf/logstash_index.conf &
+
+========================================================================================================
+客户端配置：
+yum -y install git
+mkdir -p /home/cti-link/cti-link-elk
+cd /home/cti-link/cti-link-elk
+git clone https://github.com/ti-net/cti-link-elk.git
+
+安装logstash
+mkdir -p /usr/local/elk
+tar -zxf logstash-2.3.0.tar.gz -C /usr/local/elk/
+cp /home/cti-link/cti-link-elk/cti-link-elk/conf/logstash_agent.conf /usr/local/elk/logstash-2.3.0/conf/logstash_agent.conf
+
+启动
+/usr/local/elk/logstash-2.3.0/bin/logstash -f /usr/local/elk/logstash-2.3.0/conf/logstash_agent.conf &
+
+vim /etc/rc.local
+#####logstash#####
+/usr/local/elk/logstash-2.3.0/bin/logstash -f /usr/local/elk/logstash-2.3.0/conf/logstash_agent.conf &
