@@ -98,11 +98,14 @@ git clone https://github.com/ti-net/cti-link-elk.git
 
 安装logstash
 mkdir -p /usr/local/elk
+cd /usr/local/elk/
 tar -zxf logstash-2.3.0.tar.gz -C /usr/local/elk/
+aws s3 cp s3://cti-link-deploy-test/lib/logstash-2.3.0.tar.gz .
+mkdir -p /usr/local/elk/logstash-2.3.0/conf/
 cp /home/cti-link/cti-link-elk/cti-link-elk/conf/logstash_agent.conf /usr/local/elk/logstash-2.3.0/conf/logstash_agent.conf
 
 启动
-/usr/local/elk/logstash-2.3.0/bin/logstash -f /usr/local/elk/logstash-2.3.0/conf/logstash_agent.conf &
+nohup /usr/local/elk/logstash-2.3.0/bin/logstash -f /usr/local/elk/logstash-2.3.0/conf/logstash_agent.conf &
 
 vim /etc/rc.local
 #####logstash#####
